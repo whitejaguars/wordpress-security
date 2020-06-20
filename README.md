@@ -127,9 +127,12 @@ sudo pico /etc/nginx/nginx.conf
 ```
 ```
 # WhiteJaguars Security Settings
+ssl_protocols TLSv1.2;
 ssl_prefer_server_ciphers on;
-ssl_protocols TLSv1.2 TLSv1.3;
-ssl_ciphers 'ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA$
+ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
+ssl_ecdh_curve secp384r1;
+ssl_stapling on;
+ssl_stapling_verify on;
 ```
 Now, let's configure the security headers in your site's configuration file:
 ```
@@ -193,3 +196,20 @@ server {
 }
 ```
 Validate your configuration once again with `sudo nginx -t`
+
+If everything's Ok, you can test your SSL configuration here and hopefully you'll get a nice A+
+Keep in mind that you may have to adjust the Content Security Policy header depending on the plugins or modules installed, some may stop working so for that case you should take the time for testing configure that header properly as the code included here should be considered as an starting point.
+```
+https://www.ssllabs.com/ssltest/analyze.html?d=wpworkshop.wj.cr
+```
+We're not done yet, let's add more security to your PHP configuration.
+
+9.PHP settings:
+```
+sudo pico /etc/php/7.2/fpm/php.ini
+```
+Validate the following options
+```
+expose_php = Off
+enable_dl = Off
+```
