@@ -263,5 +263,5 @@ if ($rule_0 = "1"){
 
 Reach out: 
 
-* <http://www.whitejaguars.com>
+* <https://www.whitejaguars.com>
 * <info@whitejaguars.com>
