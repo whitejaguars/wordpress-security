@@ -81,7 +81,7 @@ sudo rm /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl restart nginx
 ```
-4.1 Bonus: You can just run the script `bash wp-base.sh` for automatically executing the steps from 1 to 4.
+*Bonus*: You can just run the script `bash wp-base.sh` for automatically executing the steps from 1 to 4.
 ```
 wget -O - https://raw.githubusercontent.com/whitejaguars/wordpress-security/master/wp-base.sh | bash
 ```
@@ -92,3 +92,104 @@ Database: wordpress
 User: wordpressuser
 Password: your_super_secure_password_here
 ```
+
+6. Prepare NGinX for HTTPS and Let's Encrypt:
+```
+sudo pico /etc/nginx/sites-enabled/wpworkshop.wj.cr
+```
+Uncomment `server_name www.yourdomain.com yourdomain.com;` replacing 'wpworkshop.wj.cr' with your domain name, please make sure to have completed all the steps required for pointing the sub-domain to your server's IP address.
+Comment `server_name _;`
+
+7. Install Let's Encrypt:
+```
+sudo apt-get update
+sudo apt-get install software-properties-common
+sudo add-apt-repository universe
+sudo add-apt-repository ppa:certbot/certbot
+sudo apt-get update
+sudo apt-get install certbot python-certbot-nginx
+```
+If everything went well then start the certbot wizard:
+```
+sudo certbot --nginx
+# Answer the questions, it's very straight forward
+```
+Validate your configuration running `sudo nginx -t`
+
+8. Security configuration in NGinX
+Remove the file `readme.html`, this is a good practice for not exposing the Wordpress version and some other information useful from the attacker's perspective
+```
+sudo mv /var/www/html/wpworkshop.wj.cr/readme.html ~/readme.html
+```
+Add the following to the NGinX configuration for restricting the known weak ciphers and vulnerable protocols:
+```
+sudo pico /etc/nginx/nginx.conf
+```
+```
+# WhiteJaguars Security Settings
+ssl_prefer_server_ciphers on;
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_ciphers 'ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA$
+```
+Now, let's configure the security headers in your site's configuration file:
+```
+sudo pico /etc/nginx/sites-enabled/wpworkshop.wj.cr
+```
+Let's make it look like this (add just the section within `# WhiteJaguars Security Settings` comments:
+```
+server {
+    server_name wpworkshop.wj.cr;
+    #server_name _;
+    root /var/www/html/wpworkshop.wj.cr;
+    index index.php;
+    # log files
+    access_log /var/log/nginx/wpworkshop.wj.cr.access.log;
+    error_log /var/log/nginx/wpworkshop.wj.cr.error.log;
+    location = /favicon.ico {
+        log_not_found off;
+        access_log off;
+    }
+    location = /robots.txt {
+        allow all;
+        log_not_found off;
+        access_log off;
+    }
+    location / {
+        try_files $uri $uri/ /index.php?$args =404;
+    }
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+    }
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+        expires max;
+        log_not_found off;
+    }
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/wpworkshop.wj.cr/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/wpworkshop.wj.cr/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+    # WhiteJaguars Security Settings - start
+    server_tokens off;
+    add_header Content-Security-Policy: "default-src 'self'; img-src 'self' https://i.imgur.com; object-src 'none'; script-src 'self'; style-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self’";
+    add_header X-XSS-Protection: "1; mode=block";
+    add_header X-Frame-Options: deny;
+    add_header X-Content-Type-Options: nosniff;
+    add_header Strict-Transport-Security: max-age=3600;
+    location ~* \.(?:ico|css|js|gif|jpe?g|png|svg|woff|ttf|eot)$ {
+       try_files $uri @rewriteapp;
+       add_header Cache-Control "max-age=86400, public";
+    }
+    # WhiteJaguars Security Settings - end
+}
+server {
+    if ($host = wpworkshop.wj.cr) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+    listen 80 default_server;
+    server_name wpworkshop.wj.cr;
+    return 404; # managed by Certbot
+}
+```
+Validate your configuration once again with `sudo nginx -t`
