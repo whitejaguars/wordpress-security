@@ -82,5 +82,13 @@ sudo nginx -t
 sudo systemctl restart nginx
 ```
 4.1 Bonus: You can just run the script `bash wp-base.sh` for automatically executing the steps from 1 to 4.
+```
+wget -O - https://raw.githubusercontent.com/whitejaguars/wordpress-security/master/wp-base.sh | bash
+```
+
 5. Installing Wordpress: http://{server_ip}
+```
+Database: wordpress
+User: wordpressuser
+Password: your_super_secure_password_here
 ```
