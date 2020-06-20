@@ -234,16 +234,33 @@ if ($rule_0 = "1"){
 
 ## Testing Wordpress Security
 
-# Plugins
+### Plugins
 
 * Wordfence
 * iThemes Security
 * WPScan
 * Sucuri Security
 
-# Command line tools
+### Command line tools
 
 * WPScan (Included in Kali linux)
 ` wpscan --url https://wpworkshop.wj.cr -e u`
 * NMap scripts (Included in Kali linux)
 `nmap -p 443 --script http-wordpress* wpworkshop.wj.cr`
+
+### Web tools
+
+* TLS\SSL security scanner: `https://www.ssllabs.com/ssltest/`
+* Headers Security scanner: `https://securityheaders.com/`
+
+### Web Pentesting tools
+
+* [Burp Suite Community Edition](https://portswigger.net/burp/communitydownload)
+* [OWASP Zap](https://www.zaproxy.org/download/)
+
+### Need help securing your site?
+
+Reach out: 
+
+* <http://www.whitejaguars.com>
+* <info@whitejaguars.com>
