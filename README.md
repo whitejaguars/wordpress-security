@@ -175,10 +175,12 @@ server {
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
     # WhiteJaguars Security Settings - start
     server_tokens off;
-    add_header Content-Security-Policy "default-src 'self'; img-src 'self' https://i.imgur.com; object-src 'none'; script-src 'self'; style-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self’";
+    add_header Content-Security-Policy "default-src 'self'; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://i.imgur.com; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline' 'self' https://fonts.googleapis.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'";
     add_header X-XSS-Protection "1; mode=block";
     add_header X-Frame-Options deny;
     add_header X-Content-Type-Options nosniff;
+    add_header Referrer-Policy same-origin;
+    add_header Feature-Policy "vibrate 'self'; usermedia *; sync-xhr 'self'";
     add_header Strict-Transport-Security max-age=3600;
     location ~* \.(?:ico|css|js|gif|jpe?g|png|svg|woff|ttf|eot)$ {
        try_files $uri @rewriteapp;
