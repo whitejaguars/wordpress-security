@@ -2,7 +2,8 @@
 Techonology stack: Ubuntu 18 LTS + NGinX + PHP + Wordpress
 
 ## Installing Wordpress
-1. Let's start by installing MySQL:
+
+###1. Let's start by installing MySQL:
 ```
 sudo apt install mysql-server -y
 
@@ -11,13 +12,13 @@ sudo mysql --user=root -e "GRANT ALL ON wordpress.* TO 'wordpressuser'@'localhos
 sudo mysql --user=root -e "FLUSH PRIVILEGES;"
 ```
 
-2. Installing PHP:
+###2. Installing PHP:
 ```
 # Keep in mind newer PHP versions are preferred, however you have to make sure it's supported by Wordpress
 sudo apt install php7.2-cli php7.2-fpm php7.2-mysql php7.2-json php7.2-opcache php7.2-mbstring php7.2-xml php7.2-gd php7.2-curl -y
 ```
 
-3. Download Wordpress:
+###3. Download Wordpress:
 ```
 sudo mkdir -p /var/www/html/wpworkshop.wj.cr
 
@@ -30,7 +31,7 @@ sudo mv /tmp/wordpress/* /var/www/html/wpworkshop.wj.cr/
 sudo chown -R www-data: /var/www/html/wpworkshop.wj.cr
 ```
 
-4. Installing NginX:
+###4. Installing NginX:
 ```
 sudo apt install nginx -y
 sudo systemctl enable nginx
@@ -86,21 +87,21 @@ sudo systemctl restart nginx
 wget -O - https://raw.githubusercontent.com/whitejaguars/wordpress-security/master/wp-base.sh | bash
 ```
 
-5. Installing Wordpress: http://{server_ip}
+###5. Installing Wordpress: http://{server_ip}
 ```
 Database: wordpress
 User: wordpressuser
 Password: your_super_secure_password_here
 ```
 
-6. Prepare NGinX for HTTPS and Let's Encrypt:
+###6. Prepare NGinX for HTTPS and Let's Encrypt:
 ```
 sudo pico /etc/nginx/sites-enabled/wpworkshop.wj.cr
 ```
 Uncomment `server_name www.yourdomain.com yourdomain.com;` replacing 'wpworkshop.wj.cr' with your domain name, please make sure to have completed all the steps required for pointing the sub-domain to your server's IP address.
 Comment `server_name _;`
 
-7. Install Let's Encrypt:
+###7. Install Let's Encrypt:
 ```
 sudo apt-get update
 sudo apt-get install software-properties-common
@@ -116,7 +117,7 @@ sudo certbot --nginx
 ```
 Validate your configuration running `sudo nginx -t`
 
-8. Security configuration in NGinX
+###8. Security configuration in NGinX
 Remove the file `readme.html`, this is a good practice for not exposing the Wordpress version and some other information useful from the attacker's perspective
 ```
 sudo mv /var/www/html/wpworkshop.wj.cr/readme.html ~/readme.html
@@ -206,7 +207,7 @@ https://www.ssllabs.com/ssltest/analyze.html?d=wpworkshop.wj.cr
 ```
 We're not done yet, let's add more security to your PHP configuration.
 
-9.PHP settings:
+###9.PHP settings:
 ```
 sudo pico /etc/php/7.2/fpm/php.ini
 ```
@@ -216,7 +217,7 @@ expose_php = Off
 enable_dl = Off
 ```
 
-10.Stop user enumeration:
+###10.Stop user enumeration:
 
 In
 ```
