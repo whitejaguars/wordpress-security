@@ -13,6 +13,7 @@ sudo mysql --user=root -e "FLUSH PRIVILEGES;"
 
 2. Installing PHP:
 ```
+# Keep in mind newer PHP versions are preferred, however you have to make sure it's supported by Wordpress
 sudo apt install php7.2-cli php7.2-fpm php7.2-mysql php7.2-json php7.2-opcache php7.2-mbstring php7.2-xml php7.2-gd php7.2-curl -y
 ```
 
@@ -80,5 +81,6 @@ sudo rm /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl restart nginx
 ```
-
+4.1 Bonus: You can just run the script `bash wp-base.sh` for automatically executing the steps from 1 to 4.
 5. Installing Wordpress: http://{server_ip}
+```
