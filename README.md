@@ -231,3 +231,19 @@ if ($rule_0 = "1"){
      rewrite ^/$ http://wpworkshop.wj.cr/ permanent;
 }
 ```
+
+## Testing Wordpress Security
+
+# Plugins
+
+* Wordfence
+* iThemes Security
+* WPScan
+* Sucuri Security
+
+# Command line tools
+
+* WPScan (Included in Kali linux)
+` wpscan --url https://wpworkshop.wj.cr -e u`
+* NMap scripts (Included in Kali linux)
+`nmap -p 443 --script http-wordpress* wpworkshop.wj.cr`
