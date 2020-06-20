@@ -259,6 +259,8 @@ if ($rule_0 = "1"){
 * [Burp Suite Community Edition](https://portswigger.net/burp/communitydownload)
 * [OWASP Zap](https://www.zaproxy.org/download/)
 
+The slides in Spanish: [Guia Seguridad para Wordpress](https://github.com/whitejaguars/wordpress-security/blob/master/guia-seguridad-wordpress.pdf)
+
 ### Need help securing your site?
 
 Reach out: 
