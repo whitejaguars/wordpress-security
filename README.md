@@ -215,3 +215,18 @@ Validate the following options
 expose_php = Off
 enable_dl = Off
 ```
+
+10.Stop user enumeration:
+In
+```
+sudo pico /etc/nginx/sites-enabled/wpworkshop.wj.cr
+```
+Add
+```
+if ($args ~ "^/?author=([0-9]*)"){
+    set $rule_0 1$rule_0;
+}
+if ($rule_0 = "1"){
+     rewrite ^/$ http://192.168.1.11/404 permanent;
+}
+```
