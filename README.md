@@ -1,24 +1,40 @@
 # WhiteJaguars Wordpress Security guide
 Techonology stack: Ubuntu 18 LTS + NGinX + PHP + Wordpress
 
+This is part of a workshop we created for including security in Wordpress installations, the initial steps in this guide are standard commands for installing pre-requisites.
+
+The sub-domain used for this guide is *wpworkshop.wj.cr*, just replace it with the one you're going to use.
+
+Why using:
+* Ubuntu 18 LTS: Becuase at this moment, the Let's encrypt certbot client is not supported in Ubuntu 20, this OS is also "friendly" which makes it a good fit for this workshop.
+* NGinX: Some people think it has better performance than Apache, at the end feel free to use the one you feel more confortable with.
+* PHP 7.2: Even if the desired option is installing the latest version for security reasons, the downside is that not always the latest version works perfectly with Wordpress, make sure to find good documentation about compatibility before chosing the PHP version.
+* Wordpress: I don't need to explain this right ?
+
 ## Installing Wordpress
 
 ### 1. Let's start by installing MySQL:
+Using a custom and difficult to guess username is recommended, also make sure the password is strong enough.
 ```
 sudo apt install mysql-server -y
 
 sudo mysql --user=root -e "CREATE DATABASE wordpress CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
-sudo mysql --user=root -e "GRANT ALL ON wordpress.* TO 'wordpressuser'@'localhost' IDENTIFIED BY 'your_super_secure_password_here';"
+sudo mysql --user=root -e "GRANT ALL ON wordpress.* TO 'userdifficulttoguess'@'localhost' IDENTIFIED BY 'your_super_secure_password_here';"
 sudo mysql --user=root -e "FLUSH PRIVILEGES;"
 ```
+A few considerations:
+* It's not recommended to install the Database engine in the same server, it would be preferred to have it installed in a server dedicated to the DB engine instead also in an isolated network.
+* Access to the isolated network should be restricted at firewall level just allowing specific IP addresses and ports allowed denying everything else.
+* Your DB server should not be installed in a DMZ (not exposed to internet)
 
 ### 2. Installing PHP:
+Newer PHP versions are preferred, however you have to make sure the version you're about to install it's supported by Wordpress.
 ```
-# Keep in mind newer PHP versions are preferred, however you have to make sure it's supported by Wordpress
 sudo apt install php7.2-cli php7.2-fpm php7.2-mysql php7.2-json php7.2-opcache php7.2-mbstring php7.2-xml php7.2-gd php7.2-curl -y
 ```
 
 ### 3. Download Wordpress:
+Always download the latest version available, please remember Wordpress is the most attacked application of it's kind, you will always want it to be updated to the latest version available.
 ```
 sudo mkdir -p /var/www/html/wpworkshop.wj.cr
 
@@ -32,6 +48,7 @@ sudo chown -R www-data: /var/www/html/wpworkshop.wj.cr
 ```
 
 ### 4. Installing NginX:
+This is just the initial installation with no security at all at this point, we'll take care of that later in this guide.
 ```
 sudo apt install nginx -y
 sudo systemctl enable nginx
@@ -87,10 +104,14 @@ sudo systemctl restart nginx
 wget -O - https://raw.githubusercontent.com/whitejaguars/wordpress-security/master/wp-base.sh | bash
 ```
 
-### 5. Installing Wordpress: http://{server_ip}
+### 5. Installing Wordpress
+You should be able now to reach the installation page at http://{server_ip}.
+*Considerations:*
+* Do not use the standard 'admin' account, select one difficult to guess.
+* Make sure your password is strong if you don't want to use the one already provided by the wizard.
 ```
 Database: wordpress
-User: wordpressuser
+User: userdifficulttoguess
 Password: your_super_secure_password_here
 ```
 
@@ -98,10 +119,11 @@ Password: your_super_secure_password_here
 ```
 sudo pico /etc/nginx/sites-enabled/wpworkshop.wj.cr
 ```
-Uncomment `server_name www.yourdomain.com yourdomain.com;` replacing 'wpworkshop.wj.cr' with your domain name, please make sure to have completed all the steps required for pointing the sub-domain to your server's IP address.
+Uncomment `server_name www.yourdomain.com yourdomain.com;` replacing 'wpworkshop.wj.cr' with your domain name, please make sure to have completed all the DNS steps required for pointing the sub-domain to your server's IP address.
 Comment `server_name _;`
 
 ### 7. Install Let's Encrypt:
+If you're using Ubuntu 18 LTS, this should work without problems.
 ```
 sudo apt-get update
 sudo apt-get install software-properties-common
