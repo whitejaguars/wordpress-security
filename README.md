@@ -77,9 +77,6 @@ echo "server {
         log_not_found off;
         access_log off;
     }
-    
-    # WhiteJaguars Security settings for Wordpress
-    include /etc/nginx/whitejaguars_nginx-wp_security.conf;
 
     location / {
         # For permalinks to work
@@ -116,10 +113,13 @@ echo "server {
 
 }
 " | sudo tee -a /etc/nginx/sites-available/wpworkshop.wj.cr
+
+sudo touch /etc/nginx/whitelist.conf
 echo "
 # Include te list of whitelisted IPs with access to WP-Login 
 127.0.0.1
 " | sudo tee -a /etc/nginx/whitelist.conf
+
 sudo ln -s /etc/nginx/sites-available/wpworkshop.wj.cr /etc/nginx/sites-enabled/
 sudo rm /etc/nginx/sites-enabled/default
 sudo nginx -t
@@ -183,7 +183,39 @@ ssl_ecdh_curve secp384r1;
 ssl_stapling on;
 ssl_stapling_verify on;
 ```
-Now, let's configure the security headers in your site's configuration file:
+Now, we'll add the security headers and other protections in your security configuration file:
+```
+sudo touch /etc/nginx/whitejaguars_nginx-wp_security.conf
+echo `
+if ($http_origin) {
+        # CWE-942: Overly Permissive Cross-domain Whitelist
+        return 405;
+}
+location = /xmlrpc.php {
+        deny all;
+        access_log off;
+        log_not_found off;
+}
+location = /wp-cron.php {
+        deny all;
+        access_log off;
+        log_not_found off;
+}
+server_tokens off;
+add_header Content-Security-Policy "default-src 'self'; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://i.imgur.com; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline' 'self' https://fonts.googleapis.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'";
+add_header X-XSS-Protection "1; mode=block";
+add_header X-Frame-Options deny;
+add_header X-Content-Type-Options nosniff;
+add_header Referrer-Policy same-origin;
+add_header Feature-Policy "vibrate 'self'; usermedia *; sync-xhr 'self'";
+add_header Strict-Transport-Security max-age=31536000;
+location ~* \.(?:ico|css|js|gif|jpe?g|png|svg|woff|ttf|eot)$ {
+       try_files $uri @rewriteapp;
+       add_header Cache-Control "max-age=86400, public";
+}
+` | sudo tee -a /etc/nginx/whitejaguars_nginx-wp_security.conf
+```
+Then include those security settings in your site
 ```
 sudo pico /etc/nginx/sites-enabled/wpworkshop.wj.cr
 ```
@@ -243,18 +275,6 @@ server {
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
     # WhiteJaguars Security Settings - start
     include /etc/nginx/whitejaguars_nginx-wp_security.conf;
-    server_tokens off;
-    add_header Content-Security-Policy "default-src 'self'; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://i.imgur.com; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline' 'self' https://fonts.googleapis.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'";
-    add_header X-XSS-Protection "1; mode=block";
-    add_header X-Frame-Options deny;
-    add_header X-Content-Type-Options nosniff;
-    add_header Referrer-Policy same-origin;
-    add_header Feature-Policy "vibrate 'self'; usermedia *; sync-xhr 'self'";
-    add_header Strict-Transport-Security max-age=3600;
-    location ~* \.(?:ico|css|js|gif|jpe?g|png|svg|woff|ttf|eot)$ {
-       try_files $uri @rewriteapp;
-       add_header Cache-Control "max-age=86400, public";
-    }
     # WhiteJaguars Security Settings - end
 }
 server {
