@@ -187,7 +187,14 @@ Now, we'll add the security headers and other protections in your security confi
 ```
 sudo touch /etc/nginx/whitejaguars_nginx-wp_security.conf
 echo `
-if ($http_origin) {
+set $cors "";
+if ($http_origin ~ ^https://wpworkshop\.wj\.cr\.cr$) {
+        set $cors "true";
+}
+if ($http_origin = "") {
+        set $cors "true";
+}
+if ($cors != "true") {
         # CWE-942: Overly Permissive Cross-domain Whitelist
         return 405;
 }
