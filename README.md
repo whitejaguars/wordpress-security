@@ -77,12 +77,34 @@ echo "server {
         log_not_found off;
         access_log off;
     }
+    
+    # WhiteJaguars Security settings for Wordpress
+    include /etc/nginx/whitejaguars_nginx-wp_security.conf;
 
     location / {
-        try_files \$uri \$uri/ /index.php?\$args =404;
+        # For permalinks to work
+        try_files $uri $uri/ /index.php?$args;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        set $path_info $fastcgi_path_info;
+        fastcgi_param PATH_INFO $path_info;
+        fastcgi_index index.php;
+        include fastcgi.conf;
+        fastcgi_pass unix:/run/php/php7.2-fpm.sock;
     }
 
     location ~ \.php$ {
+        location ~ \wp-admin.php$ {
+                include /etc/nginx/whitelist.conf;
+                deny all;
+                include snippets/fastcgi-php.conf;
+                fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+        }
+        location ~ \wp-login.php$ {
+                include /etc/nginx/whitelist.conf;
+                deny all;
+                include snippets/fastcgi-php.conf;
+                fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+        }
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/run/php/php7.2-fpm.sock;
     }
@@ -94,6 +116,10 @@ echo "server {
 
 }
 " | sudo tee -a /etc/nginx/sites-available/wpworkshop.wj.cr
+echo "
+# Include te list of whitelisted IPs with access to WP-Login 
+127.0.0.1
+" | sudo tee -a /etc/nginx/whitelist.conf
 sudo ln -s /etc/nginx/sites-available/wpworkshop.wj.cr /etc/nginx/sites-enabled/
 sudo rm /etc/nginx/sites-enabled/default
 sudo nginx -t
@@ -181,9 +207,28 @@ server {
         access_log off;
     }
     location / {
-        try_files $uri $uri/ /index.php?$args =404;
+        # For permalinks to work
+        try_files $uri $uri/ /index.php?$args;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        set $path_info $fastcgi_path_info;
+        fastcgi_param PATH_INFO $path_info;
+        fastcgi_index index.php;
+        include fastcgi.conf;
+        fastcgi_pass unix:/run/php/php7.2-fpm.sock;
     }
     location ~ \.php$ {
+        location ~ \wp-admin.php$ {
+                include /etc/nginx/whitelist.conf;
+                deny all;
+                include snippets/fastcgi-php.conf;
+                fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+        }
+        location ~ \wp-login.php$ {
+                include /etc/nginx/whitelist.conf;
+                deny all;
+                include snippets/fastcgi-php.conf;
+                fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+        }
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/run/php/php7.2-fpm.sock;
     }
@@ -197,6 +242,7 @@ server {
     include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
     # WhiteJaguars Security Settings - start
+    include /etc/nginx/whitejaguars_nginx-wp_security.conf;
     server_tokens off;
     add_header Content-Security-Policy "default-src 'self'; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://i.imgur.com; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline' 'self' https://fonts.googleapis.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'";
     add_header X-XSS-Protection "1; mode=block";
